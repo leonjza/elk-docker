@@ -66,3 +66,34 @@ Brind the stack down and back up and you should be golden.
 docker-compose stop
 docker-compose up -d
 ```
+
+Your login URL will be something like <https://192.168.241.30:5601/>, using `elastic:7ivx2Jp17QFQCuZK1vEP` as the credentials (generated in the previous step)
+
+## fleet
+
+Setup the fleet server on the same host that has the stack. We install it on the bare metal here as it's also an agent.
+
+Navigate to Management -> Fleet. Download the latest agent and install it. `dpkg -i` should do it.
+
+Step 3 deployment mode is quick start (this is a lab), <https://127.0.0.1:8220> is your fleet server (will be the same host as the docker stack) (**note the https**), note your service token (dunno where else we use this yet).
+
+Before we run the command, go to "Fleet Settings" at the top right, and flip the "Elasticsearch Host" from <http://localhost:9200> to <https://localhost:9200> (note the https there).
+
+Finally, copy the "Start Fleet Server" command. We're going to edit it before we run it. The default command will not have you set the CA generated in the `create_certificates` step, so we need to add that. In my case, the docker stack lives in `/root/elk-docker`. If its different, update to the path to `ca.crt`.
+
+```bash
+elastic-agent enroll  -f \
+ --fleet-server-es=https://localhost:9200 \
+ --fleet-server-service-token=AAEAAWVsYXN0aWMvZmxlZXQtc2VydmVyL3Rva2VuLTE2Mzg2MzE0MzQ1MTQ6VWY1UEpmdUdRbGV6a25SOGdWM0ZFUQ \
+  --fleet-server-policy=8c764c80-5515-11ec-97db-6dfa850f060a \
+  --fleet-server-es-ca=/root/elk-docker/certs/ca/ca.crt
+```  
+
+Once done, enable and start the agent service.
+
+```bash
+systemctl start elastic-agent.service
+systemctl enable elastic-agent.service
+```
+
+Back in the WebUI you should see the "Fleet Server Connected!" message.
