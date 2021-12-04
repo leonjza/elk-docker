@@ -1,74 +1,65 @@
-version: "2.2"
+version: '2.2'
+
 services:
-  es-node01:
+  es01:
     image: docker.elastic.co/elasticsearch/elasticsearch:${VERSION}
-    container_name: es-node01
+    container_name: es01
     environment:
-      - node.name=es-node01
+      - node.name=es01
       - cluster.name=es-docker-cluster
-      # - discovery.seed_hosts=es-node02,es-node03
-      # - cluster.initial_master_nodes=es-node01,es-node02,es-node03
-      - cluster.initial_master_nodes=es-node01
+      - cluster.initial_master_nodes=es01
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.license.self_generated.type=trial
+      - xpack.security.enabled=true
+      - xpack.security.http.ssl.enabled=true
+      - xpack.security.http.ssl.key=$CERTS_DIR/es01/es01.key
+      - xpack.security.http.ssl.certificate_authorities=$CERTS_DIR/ca/ca.crt
+      - xpack.security.http.ssl.certificate=$CERTS_DIR/es01/es01.crt
+      - xpack.security.transport.ssl.enabled=true
+      - xpack.security.transport.ssl.verification_mode=certificate
+      - xpack.security.transport.ssl.certificate_authorities=$CERTS_DIR/ca/ca.crt
+      - xpack.security.transport.ssl.certificate=$CERTS_DIR/es01/es01.crt
+      - xpack.security.transport.ssl.key=$CERTS_DIR/es01/es01.key
     ulimits:
       memlock:
         soft: -1
         hard: -1
     volumes:
       - data01:/usr/share/elasticsearch/data
+      - ./certs:$CERTS_DIR
     ports:
       - 9200:9200
     networks:
       - elastic
 
-  # es-node02:
-  #   image: docker.elastic.co/elasticsearch/elasticsearch:${VERSION}
-  #   container_name: es-node02
-  #   environment:
-  #     - node.name=es-node02
-  #     - cluster.name=es-docker-cluster
-  #     - discovery.seed_hosts=es-node01,es-node03
-  #     - cluster.initial_master_nodes=es-node01,es-node02,es-node03
-  #     - bootstrap.memory_lock=true
-  #     - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-  #   ulimits:
-  #     memlock:
-  #       soft: -1
-  #       hard: -1
-  #   volumes:
-  #     - data02:/usr/share/elasticsearch/data
-  #   networks:
-  #     - elastic
-
-  # es-node03:
-  #   image: docker.elastic.co/elasticsearch/elasticsearch:${VERSION}
-  #   container_name: es-node03
-  #   environment:
-  #     - node.name=es-node03
-  #     - cluster.name=es-docker-cluster
-  #     - discovery.seed_hosts=es-node01,es-node02
-  #     - cluster.initial_master_nodes=es-node01,es-node02,es-node03
-  #     - bootstrap.memory_lock=true
-  #     - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-  #   ulimits:
-  #     memlock:
-  #       soft: -1
-  #       hard: -1
-  #   volumes:
-  #     - data03:/usr/share/elasticsearch/data
-  #   networks:
-  #     - elastic
+    healthcheck:
+      test: curl --cacert $CERTS_DIR/ca/ca.crt -s https://localhost:9200 >/dev/null;
+        if [[ $$? == 52 ]]; then echo 0; else echo 1; fi
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   kib01:
     image: docker.elastic.co/kibana/kibana:${VERSION}
     container_name: kib01
+    depends_on: { "es01": { "condition": "service_healthy" } }
     ports:
       - 5601:5601
     environment:
-      ELASTICSEARCH_URL: http://es-node01:9200
-      # ELASTICSEARCH_HOSTS: '["http://es-node01:9200","http://es-node02:9200","http://es-node03:9200"]'
-      ELASTICSEARCH_HOSTS: '["http://es-node01:9200""]'
+      SERVERNAME: localhost
+      ELASTICSEARCH_URL: https://es01:9200
+      ELASTICSEARCH_HOSTS: https://es01:9200
+      ELASTICSEARCH_USERNAME: kibana_system
+      ELASTICSEARCH_PASSWORD: CHANGEME
+      ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES: $CERTS_DIR/ca/ca.crt
+      SERVER_SSL_ENABLED: "true"
+      SERVER_SSL_KEY: $CERTS_DIR/kib01/kib01.key
+      SERVER_SSL_CERTIFICATE: $CERTS_DIR/kib01/kib01.crt
+      XPACK_SECURITY_ENCRYPTIONKEY: cb3256e7d3c7e62b0d6070f2be1c223a
+      XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY: 9c0ed5f550384ca8b74e549303c596d0
+    volumes:
+      - ./certs:$CERTS_DIR
     networks:
       - elastic
 
