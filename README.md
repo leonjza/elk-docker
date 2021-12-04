@@ -1,6 +1,7 @@
 # elk-docker
 
-ELK stack in Docker, with documentation issues fixed.
+ELK stack in Docker, with documentation issues fixed.  
+_This is a lab env setup with insecure configs / hardcoded keys. Don't use this anywhere important_
 
 ## info
 
@@ -97,3 +98,7 @@ systemctl enable elastic-agent.service
 ```
 
 Back in the WebUI you should see the "Fleet Server Connected!" message.
+
+## adding agents
+
+Because we used the "quick setup" mode for Fleet, remember to add the `--insecure` flag when you install the agent on hosts. Also, take note of the server URL. It is not localhost like Kibana will tell you.
