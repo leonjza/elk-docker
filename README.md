@@ -27,10 +27,10 @@ Give the stack ~60 seconds to do whatever it does.
 Now, get passwords to use it:
 
 ```bash
-docker-compose exec es-node01 /bin/bash -c "bin/elasticsearch-setup-passwords auto --batch --url https://es-node01:9200"
+docker-compose exec es-node01 /bin/bash -c "bin/elasticsearch-setup-passwords auto --batch --url https://es-node01:9200" > credentials.txt
 ```
 
-Should output something along these lines
+Should result in a file with output something along these lines
 
 ```text
 Changed password for user apm_system
@@ -55,13 +55,13 @@ Changed password for user elastic
 PASSWORD elastic = 7ivx2Jp17QFQCuZK1vEP
 ```
 
-Now, replace the password in the `ELASTICSEARCH_PASSWORD: CHANGEME` line to that which you just for for `kibana_system`. Using the example above, that means the line will now be:
+Now, replace the password in the environment file (`.env`) for `KIBANA_SYSTEM_PASSWORD` with the newly generated one. This one liner should do it:
 
-```yaml
-ELASTICSEARCH_PASSWORD: JcQqrfzgNV252iTVNfct
+```bash
+gsed -i "s/CHANGEME/$(cat credentials.txt | grep 'kibana_system =' | awk '{ print $4 }')/g" .env
 ```
 
-Brind the stack down and back up and you should be golden.
+Bring the stack down and back up and you should be golden.
 
 ```bash
 docker-compose stop
@@ -86,8 +86,8 @@ Finally, copy the "Start Fleet Server" command. We're going to edit it before we
 elastic-agent enroll  -f \
  --fleet-server-es=https://localhost:9200 \
  --fleet-server-service-token=AAEAAWVsYXN0aWMvZmxlZXQtc2VydmVyL3Rva2VuLTE2Mzg2MzE0MzQ1MTQ6VWY1UEpmdUdRbGV6a25SOGdWM0ZFUQ \
-  --fleet-server-policy=8c764c80-5515-11ec-97db-6dfa850f060a \
-  --fleet-server-es-ca=/root/elk-docker/certs/ca/ca.crt
+ --fleet-server-policy=8c764c80-5515-11ec-97db-6dfa850f060a \
+ --fleet-server-es-ca=/root/elk-docker/certs/ca/ca.crt
 ```  
 
 Once done, enable and start the agent service.

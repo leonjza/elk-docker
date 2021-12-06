@@ -6,21 +6,14 @@ instances:
     ip:
       - 127.0.0.1
 
-  # - name: es-node02
-  #   dns:
-  #     - es-node02
-  #     - localhost
-  #   ip:
-  #     - 127.0.0.1
+  - name: fleet-server01
+    dns:
+      - fleet-server01
+      - localhost
+    ip:
+      - 127.0.0.1
 
-  # - name: es-node03
-  #   dns:
-  #     - es-node03
-  #     - localhost
-  #   ip:
-  #     - 127.0.0.1
-
-  - name: "kib01"
+  - name: kib01
     dns:
       - kib01
       - localhost
