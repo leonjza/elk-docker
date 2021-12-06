@@ -61,12 +61,6 @@ Now, replace the password in the environment file (`.env`) for `KIBANA_SYSTEM_PA
 sed -i "s/KIBANA_SYSTEM_PASSWORD=CHANGEME/KIBANA_SYSTEM_PASSWORD=$(cat credentials.txt | grep 'kibana_system =' | awk '{ print $4 }')/g" .env
 ```
 
-While you are here, update the password used to setup the fleet server (`ELASTIC_PASSWORD`) as well:
-
-```bash
-sed -i "s/ELASTIC_PASSWORD=CHANGEME/ELASTIC_PASSWORD=$(cat credentials.txt | grep 'elastic =' | awk '{ print $4 }')/g" .env
-```
-
 Bring the stack down and back up and you should be golden.
 
 ```bash
@@ -77,10 +71,6 @@ docker-compose up -d
 Your login URL will be something like <https://192.168.241.30:5601/>, using `elastic:7ivx2Jp17QFQCuZK1vEP` as the credentials (generated in the previous step)
 
 ## fleet
-
-Getting the fleet server up takes a bit more config. If you check `docker-compose ps` now, you will probably have the `fleet-server01` service in an exited state. Let's fix that.
-
----
 
 Setup the fleet server on the same host that has the stack. We install it on the bare metal here as it's also an agent.
 
