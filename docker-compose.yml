@@ -79,7 +79,7 @@ services:
       # FLEET_CA: $CERTS_DIR/ca/ca.crt
       # ELASTICSEARCH_CA: $CERTS_DIR/ca/ca.crt
       # KIBANA_CA: $CERTS_DIR/ca/ca.crt
-    pots:
+    ports:
       - "8220:8220"
     volumes:
       - ./certs:$CERTS_DIR
